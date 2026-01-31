@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOOTH PROTOCOL VOLLEYBALL</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+        }
+
+        #game-container {
+            position: relative;
+            margin-top: 10px;
+        }
+
+        #gameCanvas {
+            border: 4px solid #ff6b6b;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(255, 107, 107, 0.5);
+        }
+
+        #ui-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch;
+            width: 900px;
+            padding: 15px 20px;
+            background: rgba(0,0,0,0.8);
+            border-radius: 10px;
+            margin-top: 10px;
+            border: 2px solid #4ecdc4;
+        }
+
+        .player-panel {
+            text-align: center;
+            flex: 1;
+            padding: 10px;
+        }
+
+        .player-panel h2 {
+            font-size: 14px;
+            color: #4ecdc4;
+            margin-bottom: 10px;
+        }
+
+        .score-display {
+            font-size: 36px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .score-display.glitching {
+            animation: scoreGlitch 0.1s infinite;
+        }
+
+        @keyframes scoreGlitch {
+            0% { transform: translate(0); }
+            25% { transform: translate(-2px, 1px); }
+            50% { transform: translate(2px, -1px); }
+            75% { transform: translate(-1px, -2px); }
+            100% { transform: translate(1px, 2px); }
+        }
+
+        .tooth-protocol {
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+
+        .tooth-protocol label {
+            display: block;
+            font-size: 10px;
+            color: #ff6b6b;
+            margin-bottom: 5px;
+            letter-spacing: 2px;
+        }
+
+        .mouth-display {
+            font-size: 48px;
+            line-height: 1;
+            margin: 10px 0;
+            transition: all 0.1s;
+        }
+
+        .protocol-bar {
+            width: 100%;
+            height: 20px;
+            background: linear-gradient(90deg, #2d3436 0%, #636e72 100%);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .protocol-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #fd79a8, #e84393, #fd79a8);
+            background-size: 200% 100%;
+            animation: protocolPulse 2s ease-in-out infinite;
+            transition: width 0.1s;
+        }
+
+        @keyframes protocolPulse {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .protocol-value {
+            font-size: 12px;
+            color: #dfe6e9;
+            margin-top: 5px;
+        }
+
+        .beer-meters {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .beer-meter {
+            text-align: center;
+        }
+
+        .beer-meter label {
+            font-size: 8px;
+            color: #74b9ff;
+        }
+
+        .beer-glass {
+            width: 25px;
+            height: 45px;
+            border: 2px solid rgba(255,255,255,0.5);
+            border-radius: 0 0 5px 5px;
+            position: relative;
+            overflow: hidden;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .beer-liquid {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: linear-gradient(to top, #f39c12, #f1c40f);
+            transition: height 0.2s;
+        }
+
+        .beer-foam {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            height: 6px;
+            background: #fff;
+            border-radius: 50%;
+        }
+
+        #center-panel {
+            flex: 1.5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0 20px;
+            border-left: 1px solid #4ecdc4;
+            border-right: 1px solid #4ecdc4;
+        }
+
+        #chaos-indicator {
+            font-size: 11px;
+            color: #a29bfe;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        #event-log {
+            font-size: 10px;
+            color: #fd79a8;
+            text-align: center;
+            max-height: 80px;
+            overflow: hidden;
+            line-height: 1.4;
+        }
+
+        .event-entry {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #quantum-status {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 28px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff, 0 0 60px #00ffff;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            text-align: center;
+            z-index: 100;
+            white-space: pre-line;
+        }
+
+        #quantum-status.visible {
+            opacity: 1;
+            animation: quantumPulse 0.5s ease-out;
+        }
+
+        @keyframes quantumPulse {
+            0% { transform: translate(-50%, -50%) scale(0.5); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        #instructions {
+            background: rgba(0,0,0,0.9);
+            color: #4ecdc4;
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin-top: 10px;
+            max-width: 900px;
+            font-size: 11px;
+            line-height: 1.5;
+            border: 1px solid #4ecdc4;
+        }
+
+        #instructions h3 {
+            color: #ff6b6b;
+            margin-bottom: 10px;
+            font-size: 14px;
+            letter-spacing: 3px;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        .controls-grid strong {
+            color: #f39c12;
+        }
+
+        #title {
+            font-size: 32px;
+            color: #ff6b6b;
+            text-shadow: 0 0 10px #ff6b6b, 2px 2px 0 #4ecdc4;
+            margin: 15px 0 5px 0;
+            letter-spacing: 4px;
+        }
+
+        #subtitle {
+            font-size: 12px;
+            color: #a29bfe;
+            letter-spacing: 6px;
+            margin-bottom: 5px;
+        }
+
+        .score-left { color: #74b9ff; }
+        .score-right { color: #ff7675; }
+    </style>
+</head>
+<body>
+    <h1 id="title">TOOTH PROTOCOL VOLLEYBALL</h1>
+    <div id="subtitle">THE BEER IS LOAD-BEARING</div>
+
+    <div id="game-container">
+        <canvas id="gameCanvas" width="900" height="500"></canvas>
+        <div id="quantum-status"></div>
+    </div>
+
+    <div id="ui-container">
+        <div class="player-panel">
+            <h2>YOU</h2>
+            <div class="score-display score-left" id="score-left">0</div>
+            <div class="tooth-protocol">
+                <label>TOOTH PROTOCOL</label>
+                <div class="mouth-display" id="mouth-left">😐</div>
+                <div class="protocol-bar">
+                    <div class="protocol-fill" id="protocol-fill-left" style="width: 50%"></div>
+                </div>
+                <div class="protocol-value">Q/E to adjust | <span id="protocol-val-left">50%</span></div>
+            </div>
+            <div class="beer-meters">
+                <div class="beer-meter">
+                    <div class="beer-glass">
+                        <div class="beer-liquid" id="beer-l-left" style="height: 100%"></div>
+                        <div class="beer-foam"></div>
+                    </div>
+                    <label>L</label>
+                </div>
+                <div class="beer-meter">
+                    <div class="beer-glass">
+                        <div class="beer-liquid" id="beer-r-left" style="height: 100%"></div>
+                        <div class="beer-foam"></div>
+                    </div>
+                    <label>R</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="center-panel">
+            <div id="chaos-indicator">
+                CHAOS LEVEL: <span id="chaos-level">STABLE</span><br>
+                REALITY: <span id="reality-status">NOMINAL</span>
+            </div>
+            <div id="event-log"></div>
+        </div>
+
+        <div class="player-panel">
+            <h2>ALSO YOU</h2>
+            <div class="score-display score-right" id="score-right">0</div>
+            <div class="tooth-protocol">
+                <label>TOOTH PROTOCOL</label>
+                <div class="mouth-display" id="mouth-right">😐</div>
+                <div class="protocol-bar">
+                    <div class="protocol-fill" id="protocol-fill-right" style="width: 50%"></div>
+                </div>
+                <div class="protocol-value">O/P to adjust | <span id="protocol-val-right">50%</span></div>
+            </div>
+            <div class="beer-meters">
+                <div class="beer-meter">
+                    <div class="beer-glass">
+                        <div class="beer-liquid" id="beer-l-right" style="height: 100%"></div>
+                        <div class="beer-foam"></div>
+                    </div>
+                    <label>L</label>
+                </div>
+                <div class="beer-meter">
+                    <div class="beer-glass">
+                        <div class="beer-liquid" id="beer-r-right" style="height: 100%"></div>
+                        <div class="beer-foam"></div>
+                    </div>
+                    <label>R</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="instructions">
+        <h3>PROTOCOL MANUAL</h3>
+        <div class="controls-grid">
+            <div>
+                <strong>YOU (LEFT):</strong><br>
+                WASD - Move<br>
+                Q/E - Tooth Protocol -/+<br>
+                SPACE - Jump (both)
+            </div>
+            <div>
+                <strong>TOOTH PROTOCOL:</strong><br>
+                Closed mouth = Gentle lob<br>
+                Open grimace = Power spike<br>
+                Match protocols = reduce chaos<br>
+                R = Refill beers (reset round)
+            </div>
+            <div>
+                <strong>ALSO YOU (RIGHT):</strong><br>
+                Arrows - Move<br>
+                O/P - Tooth Protocol -/+<br>
+                SPACE - Jump (both)
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Chaos scoring system
+        const SCORE_EVENTS = [
+            { name: "POINT", weight: 25, fn: (side, opp) => ({ [side]: 1 }) },
+            { name: "DOUBLE", weight: 8, fn: (side, opp) => ({ [side]: 2 }) },
+            { name: "TRIPLE THREAT", weight: 3, fn: (side, opp) => ({ [side]: 3 }) },
+            { name: "REVERSAL", weight: 10, fn: (side, opp) => ({ [opp]: 1 }) },
+            { name: "MUTUAL GAIN", weight: 5, fn: (side, opp) => ({ [side]: 1, [opp]: 1 }) },
+            { name: "THEFT", weight: 6, fn: (side, opp) => ({ [side]: 2, [opp]: -1 }) },
+            { name: "VOID", weight: 8, fn: (side, opp) => ({}) },
+            { name: "FRACTIONAL", weight: 7, fn: (side, opp) => ({ [side]: 0.5 }) },
+            { name: "PI POINT", weight: 2, fn: (side, opp) => ({ [side]: Math.PI }) },
+            { name: "NEGATIVE ZONE", weight: 4, fn: (side, opp) => ({ [side]: -1 }) },
+            { name: "SWAP", weight: 3, fn: (side, opp) => ({ swap: true }) },
+            { name: "INFLATION", weight: 2, fn: (side, opp) => ({ multiply: 1.5 }) },
+            { name: "RECESSION", weight: 2, fn: (side, opp) => ({ multiply: 0.8 }) },
+            { name: "ROUND DOWN", weight: 3, fn: (side, opp) => ({ floor: true, [side]: 1 }) },
+            { name: "CHARITABLE", weight: 4, fn: (side, opp) => ({ [opp]: 2 }) },
+            { name: "ECHO", weight: 3, fn: (side, opp) => ({ echo: side }) },
+            { name: "QUANTUM SUPERPOSITION", weight: 2, fn: (side, opp) => ({ [side]: 1, [opp]: 1, pendingRemove: side }) },
+            { name: "YESTERDAY'S NEWS", weight: 4, fn: (side, opp) => ({ yesterday: { side, amount: 1 } }) },
+            { name: "TOMORROW'S PROMISE", weight: 3, fn: (side, opp) => ({ tomorrow: { side, amount: Math.random() > 0.5 ? 2 : -1 } }) },
+            { name: "TEETH TAX", weight: 3, fn: (side, opp) => ({ [side]: 1, teethTax: true }) },
+            { name: "EXISTENTIAL", weight: 2, fn: (side, opp) => ({ [side]: 0.001 }) },
+            { name: "GENEROUS VOID", weight: 3, fn: (side, opp) => ({ [side]: 0, [opp]: 0.5 }) },
+        ];
+
+        // Game State
+        const state = {
+            scores: { left: 0, right: 0 },
+            displayScores: { left: "0", right: "0" },
+            pendingScores: { left: 0, right: 0 },
+            yesterdayScores: [],
+            tomorrowScores: [],
+            echoQueue: [],
+            pendingRemove: [],
+            chaosLevel: 0,
+            gameTime: 0,
+            serving: 'left',
+            ballInPlay: false,
+            lastHitBy: null,
+            scoreGlitch: { left: 0, right: 0 },
+            events: [],
+            rallyHits: 0
+        };
+
+        // Court dimensions
+        const GROUND_Y = 430;
+        const NET_TOP = 320;  // Lowered net for easier play
+        const NET_X = 450;
+
+        // Players - taller and more capable
+        const players = {
+            left: {
+                x: 180,
+                y: GROUND_Y - 90,
+                vx: 0,
+                vy: 0,
+                width: 50,
+                height: 90,
+                beerLeft: 100,
+                beerRight: 100,
+                toothProtocol: 50,
+                isJumping: false,
+                facing: 1,
+                armAngle: 0,
+                color: '#74b9ff',
+                hitCooldown: 0
+            },
+            right: {
+                x: 670,
+                y: GROUND_Y - 90,
+                vx: 0,
+                vy: 0,
+                width: 50,
+                height: 90,
+                beerLeft: 100,
+                beerRight: 100,
+                toothProtocol: 50,
+                isJumping: false,
+                facing: -1,
+                armAngle: 0,
+                color: '#ff7675',
+                hitCooldown: 0
+            }
+        };
+
+        // Ball - VERY SLOW and floaty
+        const ball = {
+            x: 200,
+            y: 200,
+            vx: 0,
+            vy: 0,
+            radius: 20,
+            rotation: 0,
+            trail: []
+        };
+
+        // Net
+        const net = {
+            x: NET_X,
+            y: NET_TOP,
+            width: 10,
+            height: GROUND_Y - NET_TOP,
+            entanglementPhase: 0,
+            quantumFlux: []
+        };
+
+        // VERY SLOW Physics - beach ball vibes
+        const GRAVITY = 0.08;  // Super floaty
+        const MAX_BALL_SPEED = 4;  // Slow max speed
+        const AIR_RESISTANCE = 0.995;
+        const PLAYER_SPEED = 4;
+        const JUMP_POWER = -8;
+
+        // Input state
+        const keys = {};
+
+        // Mouth emojis based on protocol level
+        function getMouthEmoji(protocol) {
+            if (protocol < 15) return '😶';
+            if (protocol < 30) return '😐';
+            if (protocol < 45) return '🙂';
+            if (protocol < 60) return '😀';
+            if (protocol < 75) return '😃';
+            if (protocol < 90) return '😬';
+            return '😁';
+        }
+
+        // Get hit properties based on tooth protocol
+        function getHitProperties(player) {
+            const protocol = player.toothProtocol;
+            const beerFactor = (player.beerLeft + player.beerRight) / 200;
+
+            // Low protocol = gentle lob, High protocol = power spike
+            const power = 1.5 + (protocol / 100) * 2.5 * (0.5 + beerFactor * 0.5);
+            const upwardBias = 3 - (protocol / 100) * 1.5; // Low protocol = high arc
+            const chaos = (protocol / 100) * 0.4;
+
+            return { power, upwardBias, chaos };
+        }
+
+        // Add event to log
+        function addEvent(text) {
+            state.events.unshift(text);
+            if (state.events.length > 5) state.events.pop();
+
+            const log = document.getElementById('event-log');
+            log.innerHTML = state.events.map(e => `<div class="event-entry">${e}</div>`).join('');
+        }
+
+        // Show quantum message
+        function showQuantumMessage(msg) {
+            const el = document.getElementById('quantum-status');
+            el.textContent = msg;
+            el.classList.add('visible');
+            setTimeout(() => el.classList.remove('visible'), 1500);
+        }
+
+        // Weighted random selection
+        function weightedRandom(events, chaosBonus = 0) {
+            const totalWeight = events.reduce((sum, e) => sum + e.weight, 0);
+            let random = Math.random() * totalWeight;
+
+            for (const event of events) {
+                random -= event.weight + (event.weight < 10 ? chaosBonus : 0);
+                if (random <= 0) return event;
+            }
+            return events[0];
+        }
+
+        // Process chaotic scoring
+        function processScore(scoringSide) {
+            const opponent = scoringSide === 'left' ? 'right' : 'left';
+            const protocolDiff = Math.abs(players.left.toothProtocol - players.right.toothProtocol);
+            const chaosBonus = protocolDiff / 10 + state.chaosLevel + (state.rallyHits * 0.2);
+
+            // Select random score event with chaos influence
+            const event = weightedRandom(SCORE_EVENTS, chaosBonus);
+            const result = event.fn(scoringSide, opponent);
+
+            showQuantumMessage(event.name);
+            addEvent(`[${event.name}] ${scoringSide.toUpperCase()} | Rally: ${state.rallyHits}`);
+
+            // Apply score changes
+            if (result.left !== undefined) state.scores.left += result.left;
+            if (result.right !== undefined) state.scores.right += result.right;
+
+            if (result.swap) {
+                const temp = state.scores.left;
+                state.scores.left = state.scores.right;
+                state.scores.right = temp;
+            }
+
+            if (result.multiply) {
+                state.scores.left *= result.multiply;
+                state.scores.right *= result.multiply;
+            }
+
+            if (result.floor) {
+                state.scores.left = Math.floor(state.scores.left);
+                state.scores.right = Math.floor(state.scores.right);
+            }
+
+            if (result.echo) {
+                state.echoQueue.push({ side: result.echo, time: state.gameTime + 300 });
+            }
+
+            if (result.yesterday) {
+                state.yesterdayScores.push({
+                    ...result.yesterday,
+                    manifests: state.gameTime + 400 + Math.random() * 600
+                });
+            }
+
+            if (result.tomorrow) {
+                state.tomorrowScores.push({
+                    ...result.tomorrow,
+                    manifests: state.gameTime + 500 + Math.random() * 800
+                });
+            }
+
+            if (result.pendingRemove) {
+                state.pendingRemove.push({ side: result.pendingRemove, time: state.gameTime + 200 });
+            }
+
+            if (result.teethTax) {
+                players.left.toothProtocol = Math.max(0, players.left.toothProtocol - 5);
+                players.right.toothProtocol = Math.max(0, players.right.toothProtocol - 5);
+            }
+
+            // Increase chaos based on rally length
+            state.chaosLevel = Math.min(10, state.chaosLevel + 0.3 + state.rallyHits * 0.1);
+
+            // Glitch effect on score displays
+            state.scoreGlitch[scoringSide] = 30;
+
+            // Reset rally counter
+            state.rallyHits = 0;
+
+            updateScoreDisplay();
+        }
+
+        // Process temporal scores
+        function processTemporalScores() {
+            // Yesterday
+            const manifestingYesterday = state.yesterdayScores.filter(s => s.manifests <= state.gameTime);
+            manifestingYesterday.forEach(s => {
+                state.scores[s.side] += s.amount;
+                addEvent(`[YESTERDAY ARRIVES] +${s.amount} ${s.side.toUpperCase()}`);
+                showQuantumMessage("YESTERDAY\nMANIFESTS");
+            });
+            state.yesterdayScores = state.yesterdayScores.filter(s => s.manifests > state.gameTime);
+
+            // Tomorrow
+            const manifestingTomorrow = state.tomorrowScores.filter(s => s.manifests <= state.gameTime);
+            manifestingTomorrow.forEach(s => {
+                state.scores[s.side] += s.amount;
+                const sign = s.amount >= 0 ? '+' : '';
+                addEvent(`[TOMORROW KEPT] ${sign}${s.amount} ${s.side.toUpperCase()}`);
+                showQuantumMessage("TOMORROW\nARRIVES");
+            });
+            state.tomorrowScores = state.tomorrowScores.filter(s => s.manifests > state.gameTime);
+
+            // Echo
+            const echoNow = state.echoQueue.filter(e => e.time <= state.gameTime);
+            echoNow.forEach(e => {
+                state.scores[e.side] += 0.5;
+                addEvent(`[ECHO] +0.5 ${e.side.toUpperCase()}`);
+            });
+            state.echoQueue = state.echoQueue.filter(e => e.time > state.gameTime);
+
+            // Pending removes (quantum superposition collapse)
+            const removing = state.pendingRemove.filter(p => p.time <= state.gameTime);
+            removing.forEach(p => {
+                state.scores[p.side] -= 1;
+                addEvent(`[SUPERPOSITION COLLAPSE] -1 ${p.side.toUpperCase()}`);
+                showQuantumMessage("WAVE FUNCTION\nCOLLAPSED");
+            });
+            state.pendingRemove = state.pendingRemove.filter(p => p.time > state.gameTime);
+
+            if (manifestingYesterday.length || manifestingTomorrow.length || echoNow.length || removing.length) {
+                updateScoreDisplay();
+            }
+        }
+
+        // Random score anomalies
+        function randomAnomalies() {
+            if (Math.random() < 0.0008 * state.chaosLevel) {
+                const side = Math.random() < 0.5 ? 'left' : 'right';
+                const drift = (Math.random() - 0.5) * 0.3;
+                state.scores[side] += drift;
+                addEvent(`[DRIFT] ${drift > 0 ? '+' : ''}${drift.toFixed(2)} ${side.toUpperCase()}`);
+                updateScoreDisplay();
+            }
+
+            if (Math.random() < 0.0003 * state.chaosLevel) {
+                state.scoreGlitch.left = 60;
+                state.scoreGlitch.right = 60;
+                addEvent("[REALITY HICCUP]");
+            }
+        }
+
+        // Update score display with formatting
+        function updateScoreDisplay() {
+            ['left', 'right'].forEach(side => {
+                const score = state.scores[side];
+                const el = document.getElementById(`score-${side}`);
+
+                let display;
+                if (state.scoreGlitch[side] > 30) {
+                    display = (Math.random() * 100).toFixed(1);
+                    el.classList.add('glitching');
+                } else {
+                    el.classList.remove('glitching');
+                    if (Number.isInteger(score)) {
+                        display = score.toString();
+                    } else if (Math.abs(score - Math.PI) < 0.01) {
+                        display = "π";
+                    } else if (Math.abs(score - Math.E) < 0.01) {
+                        display = "e";
+                    } else {
+                        display = score.toFixed(2);
+                    }
+                }
+
+                el.textContent = display;
+            });
+
+            const chaosLevels = ['STABLE', 'UNEASY', 'TURBULENT', 'CHAOTIC', 'UNHINGED', 'TRANSCENDENT'];
+            const chaosIndex = Math.min(chaosLevels.length - 1, Math.floor(state.chaosLevel / 2));
+            document.getElementById('chaos-level').textContent = chaosLevels[chaosIndex];
+
+            const realities = ['NOMINAL', 'QUESTIONABLE', 'SUBJECTIVE', 'OPTIONAL', 'THEORETICAL', 'IMAGINARY'];
+            document.getElementById('reality-status').textContent = realities[chaosIndex];
+        }
+
+        // Update UI displays
+        function updateUI() {
+            ['left', 'right'].forEach(side => {
+                const player = players[side];
+                document.getElementById(`mouth-${side}`).textContent = getMouthEmoji(player.toothProtocol);
+                document.getElementById(`protocol-fill-${side}`).style.width = `${player.toothProtocol}%`;
+                document.getElementById(`protocol-val-${side}`).textContent = `${Math.round(player.toothProtocol)}%`;
+                document.getElementById(`beer-l-${side}`).style.height = `${player.beerLeft}%`;
+                document.getElementById(`beer-r-${side}`).style.height = `${player.beerRight}%`;
+            });
+
+            if (state.scoreGlitch.left > 0) state.scoreGlitch.left--;
+            if (state.scoreGlitch.right > 0) state.scoreGlitch.right--;
+
+            if (state.scoreGlitch.left > 0 || state.scoreGlitch.right > 0) {
+                updateScoreDisplay();
+            }
+        }
+
+        // Spill beer
+        function spillBeer(player, amount) {
+            const spillLeft = amount * (0.3 + Math.random() * 0.4);
+            const spillRight = amount - spillLeft;
+            player.beerLeft = Math.max(0, player.beerLeft - spillLeft);
+            player.beerRight = Math.max(0, player.beerRight - spillRight);
+
+            if (player.beerLeft < 10 || player.beerRight < 10) {
+                state.chaosLevel = Math.min(10, state.chaosLevel + 0.05);
+            }
+        }
+
+        // Reset ball for serve
+        function resetBall(server) {
+            ball.x = server === 'left' ? 180 : 720;
+            ball.y = 280;
+            ball.vx = 0;
+            ball.vy = 0;
+            ball.trail = [];
+            state.ballInPlay = true;
+            state.lastHitBy = null;
+            state.rallyHits = 0;
+        }
+
+        // Refill beers
+        function refillBeers() {
+            players.left.beerLeft = 100;
+            players.left.beerRight = 100;
+            players.right.beerLeft = 100;
+            players.right.beerRight = 100;
+            addEvent("[BEERS REFILLED]");
+            resetBall(state.serving);
+        }
+
+        // Check ball-player collision
+        function checkPlayerCollision(player, side) {
+            if (player.hitCooldown > 0) return false;
+
+            // Check collision with player's upper body and arms
+            const playerCenterX = player.x + player.width / 2;
+            const playerTopY = player.y;
+
+            // Expanded hit zone for arms
+            const hitZoneLeft = player.x - 20;
+            const hitZoneRight = player.x + player.width + 20;
+            const hitZoneTop = player.y - 25;
+            const hitZoneBottom = player.y + player.height * 0.6;
+
+            const dx = ball.x - Math.max(hitZoneLeft, Math.min(ball.x, hitZoneRight));
+            const dy = ball.y - Math.max(hitZoneTop, Math.min(ball.y, hitZoneBottom));
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < ball.radius) {
+                const props = getHitProperties(player);
+
+                // Calculate hit direction
+                const hitAngle = Math.atan2(ball.y - playerTopY, ball.x - playerCenterX);
+
+                // Add chaos to angle based on protocol
+                const chaosAngle = (Math.random() - 0.5) * props.chaos;
+
+                // Direction toward opponent's side
+                const targetDir = side === 'left' ? 1 : -1;
+
+                // Calculate new velocity - always go UP and toward opponent
+                ball.vx = targetDir * props.power * (0.8 + Math.random() * 0.4);
+                ball.vy = -props.upwardBias - Math.abs(props.power * 0.5);
+
+                // Add player velocity influence
+                ball.vx += player.vx * 0.3;
+
+                // Add chaos
+                ball.vx += Math.cos(chaosAngle) * props.chaos;
+                ball.vy += Math.sin(chaosAngle) * props.chaos * 0.5;
+
+                // Clamp speed
+                const speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+                if (speed > MAX_BALL_SPEED) {
+                    ball.vx = (ball.vx / speed) * MAX_BALL_SPEED;
+                    ball.vy = (ball.vy / speed) * MAX_BALL_SPEED;
+                }
+
+                // Spill beer on hit
+                spillBeer(player, 1.5 + (player.toothProtocol / 100) * 2);
+
+                state.lastHitBy = side;
+                state.rallyHits++;
+                player.armAngle = -Math.PI / 4;
+                player.hitCooldown = 15;
+
+                // Protocol sync bonus
+                const protocolDiff = Math.abs(players.left.toothProtocol - players.right.toothProtocol);
+                if (protocolDiff < 10) {
+                    addEvent("[PROTOCOL SYNC]");
+                    state.chaosLevel = Math.max(0, state.chaosLevel - 0.3);
+                }
+
+                // Rally bonus events
+                if (state.rallyHits === 5) {
+                    addEvent("[RALLY BONUS: CHAOS+]");
+                    state.chaosLevel = Math.min(10, state.chaosLevel + 1);
+                } else if (state.rallyHits === 10) {
+                    addEvent("[LEGENDARY RALLY]");
+                    state.chaosLevel = Math.min(10, state.chaosLevel + 2);
+                    showQuantumMessage("LEGENDARY\nRALLY!");
+                }
+
+                return true;
+            }
+            return false;
+        }
+
+        // Update player
+        function updatePlayer(player, keyBindings, side) {
+            const [up, left, down, right, protDown, protUp] = keyBindings;
+            const beerWeight = (player.beerLeft + player.beerRight) / 200;
+            const speed = PLAYER_SPEED * (1 - beerWeight * 0.3);
+
+            // Tooth protocol adjustment
+            if (keys[protDown]) player.toothProtocol = Math.max(0, player.toothProtocol - 1.2);
+            if (keys[protUp]) player.toothProtocol = Math.min(100, player.toothProtocol + 1.2);
+
+            // Horizontal movement
+            if (keys[left]) {
+                player.vx = -speed;
+                player.facing = -1;
+                spillBeer(player, 0.03);
+            } else if (keys[right]) {
+                player.vx = speed;
+                player.facing = 1;
+                spillBeer(player, 0.03);
+            } else {
+                player.vx *= 0.85;
+            }
+
+            // Jump - space makes both jump
+            if ((keys[up] || keys[' ']) && !player.isJumping) {
+                player.vy = JUMP_POWER * (1 - beerWeight * 0.2);
+                player.isJumping = true;
+                spillBeer(player, 2);
+            }
+
+            // Apply gravity
+            player.vy += 0.35;
+
+            // Update position
+            player.x += player.vx;
+            player.y += player.vy;
+
+            // Ground collision
+            if (player.y > GROUND_Y - player.height) {
+                player.y = GROUND_Y - player.height;
+                player.vy = 0;
+                player.isJumping = false;
+            }
+
+            // Boundary limits - can't cross net
+            if (side === 'left') {
+                player.x = Math.max(10, Math.min(NET_X - player.width - 15, player.x));
+            } else {
+                player.x = Math.max(NET_X + 15, Math.min(canvas.width - player.width - 10, player.x));
+            }
+
+            // Arm animation recovery
+            player.armAngle *= 0.9;
+
+            // Hit cooldown
+            if (player.hitCooldown > 0) player.hitCooldown--;
+        }
+
+        // Game update
+        function update() {
+            state.gameTime++;
+
+            processTemporalScores();
+            randomAnomalies();
+
+            // Chaos decay
+            state.chaosLevel = Math.max(0, state.chaosLevel - 0.001);
+
+            // Player updates
+            updatePlayer(players.left, ['w', 'a', 's', 'd', 'q', 'e'], 'left');
+            updatePlayer(players.right, ['ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight', 'o', 'p'], 'right');
+
+            // Ball physics
+            if (state.ballInPlay) {
+                // Gravity - very light
+                ball.vy += GRAVITY;
+
+                // Air resistance
+                ball.vx *= AIR_RESISTANCE;
+                ball.vy *= AIR_RESISTANCE;
+
+                // Update position
+                ball.x += ball.vx;
+                ball.y += ball.vy;
+                ball.rotation += ball.vx * 0.03;
+
+                // Trail
+                if (state.gameTime % 2 === 0) {
+                    ball.trail.push({ x: ball.x, y: ball.y, age: 0 });
+                    if (ball.trail.length > 20) ball.trail.shift();
+                }
+
+                // Wall bounces
+                if (ball.x < ball.radius) {
+                    ball.x = ball.radius;
+                    ball.vx *= -0.6;
+                }
+                if (ball.x > canvas.width - ball.radius) {
+                    ball.x = canvas.width - ball.radius;
+                    ball.vx *= -0.6;
+                }
+
+                // Ceiling
+                if (ball.y < ball.radius) {
+                    ball.y = ball.radius;
+                    ball.vy *= -0.6;
+                }
+
+                // Net collision - ball can go OVER but not THROUGH
+                const netLeft = net.x - net.width / 2;
+                const netRight = net.x + net.width / 2;
+
+                if (ball.x + ball.radius > netLeft && ball.x - ball.radius < netRight) {
+                    // Only collide if ball is below net top
+                    if (ball.y + ball.radius > net.y) {
+                        // Push ball out of net
+                        if (ball.vx > 0) {
+                            ball.x = netLeft - ball.radius;
+                        } else {
+                            ball.x = netRight + ball.radius;
+                        }
+                        ball.vx *= -0.4;
+
+                        // Quantum flux effect
+                        net.quantumFlux.push({ x: ball.x, y: ball.y, life: 40 });
+                        net.entanglementPhase += 0.4;
+                        state.chaosLevel = Math.min(10, state.chaosLevel + 0.3);
+                        addEvent("[NET TOUCHED - CHAOS+]");
+                    }
+                }
+
+                // Ground - scoring
+                if (ball.y + ball.radius > GROUND_Y) {
+                    ball.y = GROUND_Y - ball.radius;
+                    ball.vy = 0;
+                    ball.vx = 0;
+
+                    let scoringSide = ball.x < NET_X ? 'right' : 'left';
+                    processScore(scoringSide);
+
+                    state.ballInPlay = false;
+                    setTimeout(() => {
+                        state.serving = scoringSide;
+                        resetBall(scoringSide);
+                    }, 2000);
+                }
+
+                // Player collision
+                checkPlayerCollision(players.left, 'left');
+                checkPlayerCollision(players.right, 'right');
+            }
+
+            // Update net quantum flux
+            net.quantumFlux = net.quantumFlux.filter(f => {
+                f.life--;
+                return f.life > 0;
+            });
+
+            net.entanglementPhase *= 0.99;
+
+            // Update UI
+            updateUI();
+        }
+
+        // Drawing functions
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Night sky gradient
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            skyGrad.addColorStop(0, '#0f0c29');
+            skyGrad.addColorStop(0.5, '#302b63');
+            skyGrad.addColorStop(1, '#24243e');
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Stars
+            ctx.fillStyle = '#fff';
+            for (let i = 0; i < 60; i++) {
+                const x = (i * 137 + 50) % canvas.width;
+                const y = (i * 73 + 20) % (GROUND_Y * 0.6);
+                const twinkle = Math.sin(state.gameTime * 0.03 + i * 0.5) * 0.5 + 0.5;
+                ctx.globalAlpha = twinkle * 0.9;
+                ctx.beginPath();
+                ctx.arc(x, y, 1 + twinkle * 1.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+
+            // Moon
+            ctx.fillStyle = '#f5f5dc';
+            ctx.shadowColor = '#f5f5dc';
+            ctx.shadowBlur = 30;
+            ctx.beginPath();
+            ctx.arc(800, 70, 40, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Ocean in background
+            ctx.fillStyle = '#1a1a4e';
+            ctx.fillRect(0, GROUND_Y - 30, canvas.width, 30);
+
+            // Waves
+            ctx.strokeStyle = '#4ecdc4';
+            ctx.lineWidth = 2;
+            ctx.globalAlpha = 0.3;
+            for (let w = 0; w < 3; w++) {
+                ctx.beginPath();
+                for (let x = 0; x < canvas.width; x += 10) {
+                    const y = GROUND_Y - 25 + w * 8 + Math.sin((x + state.gameTime * 0.5 + w * 50) * 0.02) * 3;
+                    if (x === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            }
+            ctx.globalAlpha = 1;
+
+            // Sand
+            const sandGrad = ctx.createLinearGradient(0, GROUND_Y, 0, canvas.height);
+            sandGrad.addColorStop(0, '#c9b458');
+            sandGrad.addColorStop(1, '#8b7355');
+            ctx.fillStyle = sandGrad;
+            ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
+
+            // Court lines (glowing)
+            ctx.shadowColor = '#4ecdc4';
+            ctx.shadowBlur = 15;
+            ctx.strokeStyle = '#4ecdc4';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(30, GROUND_Y);
+            ctx.lineTo(870, GROUND_Y);
+            ctx.stroke();
+
+            // Side lines
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(30, GROUND_Y);
+            ctx.lineTo(30, GROUND_Y + 60);
+            ctx.moveTo(870, GROUND_Y);
+            ctx.lineTo(870, GROUND_Y + 60);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Net
+            drawNet();
+
+            // Ball trail
+            ball.trail.forEach((pos, i) => {
+                const alpha = (i / ball.trail.length) * 0.4;
+                const size = ball.radius * (0.3 + (i / ball.trail.length) * 0.7);
+                ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Players
+            drawPlayer(players.left, 'YOU');
+            drawPlayer(players.right, 'ALSO YOU');
+
+            // Ball
+            if (state.ballInPlay || ball.y < GROUND_Y) {
+                drawBall();
+            }
+
+            // Quantum flux
+            drawQuantumFlux();
+
+            // Rally counter
+            if (state.rallyHits > 0) {
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 16px monospace';
+                ctx.textAlign = 'center';
+                ctx.globalAlpha = 0.7;
+                ctx.fillText(`Rally: ${state.rallyHits}`, canvas.width / 2, 30);
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        function drawNet() {
+            const glowIntensity = Math.min(1, net.entanglementPhase * 2 + state.chaosLevel * 0.1);
+
+            // Net glow
+            if (glowIntensity > 0.1) {
+                ctx.shadowColor = `hsl(${(280 + state.gameTime * 2) % 360}, 100%, 60%)`;
+                ctx.shadowBlur = 25 * glowIntensity;
+            }
+
+            // Net poles
+            ctx.fillStyle = '#ddd';
+            ctx.fillRect(net.x - 5, net.y - 15, 10, net.height + 15);
+
+            // Net mesh
+            ctx.strokeStyle = `rgba(255, 255, 255, ${0.6 + glowIntensity * 0.4})`;
+            ctx.lineWidth = 2;
+
+            // Horizontal lines
+            for (let y = net.y; y < GROUND_Y; y += 15) {
+                const wave = Math.sin((y + state.gameTime * 0.08) * 0.15) * 6 * glowIntensity;
+                ctx.beginPath();
+                ctx.moveTo(net.x - 30 + wave, y);
+                ctx.lineTo(net.x + 30 - wave, y);
+                ctx.stroke();
+            }
+
+            // Vertical lines
+            for (let x = -25; x <= 25; x += 12) {
+                ctx.beginPath();
+                ctx.moveTo(net.x + x, net.y);
+                ctx.lineTo(net.x + x, GROUND_Y);
+                ctx.stroke();
+            }
+
+            ctx.shadowBlur = 0;
+
+            // Net top band
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(net.x - 35, net.y - 5, 70, 8);
+
+            // Entanglement display
+            if (glowIntensity > 0.15) {
+                ctx.fillStyle = `rgba(255, 100, 255, ${glowIntensity})`;
+                ctx.font = 'bold 11px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(`ENTANGLEMENT ${(glowIntensity * 100).toFixed(0)}%`, net.x, net.y - 25);
+            }
+        }
+
+        function drawPlayer(player, label) {
+            ctx.save();
+            ctx.translate(player.x + player.width / 2, player.y + player.height / 2);
+
+            // Glow based on protocol
+            const glowIntensity = player.toothProtocol / 100;
+            if (glowIntensity > 0.5) {
+                ctx.shadowColor = player.color;
+                ctx.shadowBlur = 15 * glowIntensity;
+            }
+
+            // Body (torso)
+            ctx.fillStyle = player.color;
+            ctx.beginPath();
+            ctx.roundRect(-player.width / 2 + 5, -player.height / 2 + 25, player.width - 10, player.height - 45, 5);
+            ctx.fill();
+
+            // Shorts
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillRect(-player.width / 2 + 8, player.height / 2 - 35, player.width - 16, 20);
+
+            // Legs
+            ctx.fillStyle = '#FDBF6F';
+            ctx.fillRect(-12, player.height / 2 - 15, 10, 25);
+            ctx.fillRect(2, player.height / 2 - 15, 10, 25);
+
+            // Head
+            ctx.fillStyle = '#FDBF6F';
+            ctx.beginPath();
+            ctx.arc(0, -player.height / 2 + 10, 22, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Hair
+            ctx.fillStyle = '#5d4e37';
+            ctx.beginPath();
+            ctx.arc(0, -player.height / 2 + 3, 22, Math.PI, 2 * Math.PI);
+            ctx.fill();
+
+            // Eyes
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(-7, -player.height / 2 + 8, 3, 0, Math.PI * 2);
+            ctx.arc(7, -player.height / 2 + 8, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eyebrows (intensity based on protocol)
+            ctx.strokeStyle = '#5d4e37';
+            ctx.lineWidth = 2;
+            const browAngle = (player.toothProtocol / 100) * 0.3;
+            ctx.beginPath();
+            ctx.moveTo(-12, -player.height / 2 + 2 + browAngle * 5);
+            ctx.lineTo(-3, -player.height / 2 + 2 - browAngle * 3);
+            ctx.moveTo(12, -player.height / 2 + 2 + browAngle * 5);
+            ctx.lineTo(3, -player.height / 2 + 2 - browAngle * 3);
+            ctx.stroke();
+
+            // Mouth based on tooth protocol
+            const mouthOpen = (player.toothProtocol / 100) * 14;
+            ctx.fillStyle = '#8B0000';
+            ctx.beginPath();
+            ctx.ellipse(0, -player.height / 2 + 20, 10, 3 + mouthOpen, 0, 0, Math.PI);
+            ctx.fill();
+
+            // Teeth (visible when mouth open)
+            if (player.toothProtocol > 25) {
+                ctx.fillStyle = '#fff';
+                const teethCount = Math.floor((player.toothProtocol - 25) / 12) + 1;
+                for (let i = 0; i < Math.min(teethCount, 7); i++) {
+                    ctx.fillRect(-9 + i * 3, -player.height / 2 + 17, 2.5, 4);
+                }
+            }
+
+            ctx.shadowBlur = 0;
+
+            // Arms with beers
+            ctx.save();
+            ctx.rotate(player.armAngle);
+
+            // Left arm
+            ctx.fillStyle = '#FDBF6F';
+            ctx.beginPath();
+            ctx.roundRect(-player.width / 2 - 12, -5, 18, 10, 3);
+            ctx.fill();
+            drawBeerHeld(-player.width / 2 - 18, 0, player.beerLeft);
+
+            // Right arm
+            ctx.beginPath();
+            ctx.roundRect(player.width / 2 - 6, -5, 18, 10, 3);
+            ctx.fill();
+            drawBeerHeld(player.width / 2 + 12, 0, player.beerRight);
+
+            ctx.restore();
+
+            // Label
+            ctx.fillStyle = player.color;
+            ctx.font = 'bold 11px monospace';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = '#000';
+            ctx.shadowBlur = 3;
+            ctx.fillText(label, 0, player.height / 2 + 25);
+            ctx.shadowBlur = 0;
+
+            ctx.restore();
+        }
+
+        function drawBeerHeld(x, y, fillLevel) {
+            // Glass
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+            ctx.beginPath();
+            ctx.roundRect(x - 8, y - 20, 16, 28, 2);
+            ctx.fill();
+
+            // Beer liquid
+            const beerHeight = (fillLevel / 100) * 24;
+            if (beerHeight > 0) {
+                const beerGrad = ctx.createLinearGradient(x, y + 8 - beerHeight, x, y + 8);
+                beerGrad.addColorStop(0, '#f1c40f');
+                beerGrad.addColorStop(1, '#e67e22');
+                ctx.fillStyle = beerGrad;
+                ctx.fillRect(x - 6, y + 8 - beerHeight, 12, beerHeight);
+
+                // Foam
+                if (fillLevel > 15) {
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath();
+                    ctx.ellipse(x, y + 8 - beerHeight, 6, 3, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // Glass outline
+            ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.roundRect(x - 8, y - 20, 16, 28, 2);
+            ctx.stroke();
+
+            // Handle
+            ctx.beginPath();
+            ctx.arc(x + 10, y - 6, 5, -Math.PI / 2, Math.PI / 2);
+            ctx.stroke();
+        }
+
+        function drawBall() {
+            ctx.save();
+            ctx.translate(ball.x, ball.y);
+            ctx.rotate(ball.rotation);
+
+            // Ball shadow on ground
+            const shadowY = GROUND_Y - ball.y;
+            const shadowScale = Math.max(0.3, 1 - shadowY / 300);
+            ctx.fillStyle = 'rgba(0,0,0,0.2)';
+            ctx.beginPath();
+            ctx.ellipse(0, shadowY, ball.radius * shadowScale, ball.radius * 0.3 * shadowScale, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Ball glow
+            ctx.shadowColor = '#fff';
+            ctx.shadowBlur = 20;
+
+            // Ball base
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(0, 0, ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.shadowBlur = 0;
+
+            // Beach ball stripes
+            const stripeColors = ['#ff6b6b', '#4ecdc4', '#f39c12', '#9b59b6'];
+            for (let i = 0; i < 4; i++) {
+                ctx.fillStyle = stripeColors[i];
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, ball.radius - 2, (i * Math.PI / 2) - 0.3, (i * Math.PI / 2) + 0.3);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // Ball highlight
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.beginPath();
+            ctx.arc(-5, -5, ball.radius * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function drawQuantumFlux() {
+            net.quantumFlux.forEach(f => {
+                const alpha = f.life / 40;
+                const hue = (state.gameTime * 3 + f.life * 10) % 360;
+
+                for (let i = 0; i < 3; i++) {
+                    ctx.fillStyle = `hsla(${hue + i * 30}, 100%, 60%, ${alpha * 0.7})`;
+                    ctx.beginPath();
+                    ctx.arc(
+                        f.x + (Math.random() - 0.5) * 40,
+                        f.y + (Math.random() - 0.5) * 40,
+                        3 + Math.random() * 6,
+                        0, Math.PI * 2
+                    );
+                    ctx.fill();
+                }
+            });
+        }
+
+        // Input handlers
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            keys[e.key.toLowerCase()] = true;
+
+            if (e.key === 'r' || e.key === 'R') {
+                refillBeers();
+            }
+
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+            keys[e.key.toLowerCase()] = false;
+        });
+
+        // Game loop
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initialize
+        resetBall('left');
+        addEvent("[TOOTH PROTOCOL: ACTIVE]");
+        addEvent("[BEER STATUS: LOAD-BEARING]");
+        addEvent("[REALITY: NEGOTIABLE]");
+        gameLoop();
+    </script>
+</body>
+</html>
